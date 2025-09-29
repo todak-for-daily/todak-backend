@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: todak-server
+  profiles:
+    active: secret
