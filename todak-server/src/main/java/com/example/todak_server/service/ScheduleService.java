@@ -6,11 +6,13 @@ import com.example.todak_server.entity.SourceType;
 import com.example.todak_server.entity.WeeklySchedule;
 import com.example.todak_server.repository.GeneralScheduleRepository;
 import com.example.todak_server.repository.WeeklyScheduleRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -123,6 +125,48 @@ public class ScheduleService {
         for (GeneralSchedule g : generals) {
             if (g.getDate().isAfter(LocalDate.now())) {
                 generalRepo.delete(g);
+            }
+        }
+    }
+
+    /**
+     * 매주 월요일 0시에 자동으로 General 일정 연장
+     */
+    @Scheduled(cron = "0 0 0 * * MON")
+    @Transactional
+    public void extendWeeklySchedules() {
+        List<WeeklySchedule> allWeeklies = weeklyRepo.findAll();
+        LocalDate today = LocalDate.now();
+        LocalDate limit = today.plusWeeks(8);
+
+        for (WeeklySchedule weekly : allWeeklies) {
+            // 이 Weekly 일정에 연결된 General 중 가장 마지막 날짜 확인
+            List<GeneralSchedule> generals = generalRepo.findBySourceId(weekly.getId());
+            LocalDate latest = generals.stream()
+                    .map(GeneralSchedule::getDate)
+                    .max(LocalDate::compareTo)
+                    .orElse(today.minusDays(1)); // 없으면 과거 날짜로 설정
+
+            // 마지막 스냅샷이 8주보다 짧으면 연장 필요
+            if (ChronoUnit.WEEKS.between(today, latest) < 8) {
+                LocalDate nextDate = latest.plusWeeks(1);
+
+                // 다음 주차부터 limit(8주 후)까지 반복 생성
+                while (!nextDate.isAfter(limit)) {
+                    if (nextDate.getDayOfWeek().name().equals(weekly.getDayOfWeek().name())) {
+                        GeneralSchedule g = new GeneralSchedule();
+                        g.setMember(weekly.getMember());
+                        g.setDate(nextDate);
+                        g.setStartTime(weekly.getStartTime());
+                        g.setEndTime(weekly.getEndTime());
+                        g.setTitle(weekly.getTitle());
+                        g.setColor(weekly.getColor());
+                        g.setSourceType(SourceType.WEEKLY);
+                        g.setSourceId(weekly.getId());
+                        generalRepo.save(g);
+                    }
+                    nextDate = nextDate.plusDays(1);
+                }
             }
         }
     }
