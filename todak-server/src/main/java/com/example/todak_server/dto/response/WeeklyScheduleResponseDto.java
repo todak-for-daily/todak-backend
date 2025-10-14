@@ -8,5 +8,6 @@ public record WeeklyScheduleResponseDto(
         LocalTime startTime,
         LocalTime endTime,
         String title,
-        String color
+        String color,
+        String location
 ) {}

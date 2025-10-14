@@ -39,6 +39,7 @@ public class ScheduleController {
         weekly.setEndTime(dto.endTime());
         weekly.setTitle(dto.title());
         weekly.setColor(dto.color());
+        weekly.setLocation(dto.location());
 
         // 기본 범위: 오늘부터 8주 후까지
         LocalDate start = LocalDate.now();
@@ -52,7 +53,8 @@ public class ScheduleController {
                 saved.getStartTime(),
                 saved.getEndTime(),
                 saved.getTitle(),
-                saved.getColor()
+                saved.getColor(),
+                saved.getLocation()
         );
     }
 
@@ -69,7 +71,8 @@ public class ScheduleController {
                         w.getStartTime(),
                         w.getEndTime(),
                         w.getTitle(),
-                        w.getColor()
+                        w.getColor(),
+                        w.getLocation()
                 ))
                 .toList();
     }
@@ -89,7 +92,8 @@ public class ScheduleController {
                         g.getStartTime(),
                         g.getEndTime(),
                         g.getTitle(),
-                        g.getColor()
+                        g.getColor(),
+                        g.getLocation()
                 ))
                 .toList();
     }
@@ -107,6 +111,7 @@ public class ScheduleController {
         general.setEndTime(dto.endTime());
         general.setTitle(dto.title());
         general.setColor(dto.color());
+        general.setLocation(dto.location());
 
         GeneralSchedule saved = scheduleService.createGeneralSchedule(general);
 
@@ -116,7 +121,8 @@ public class ScheduleController {
                 saved.getStartTime(),
                 saved.getEndTime(),
                 saved.getTitle(),
-                saved.getColor()
+                saved.getColor(),
+                saved.getLocation()
         );
     }
 
@@ -134,6 +140,7 @@ public class ScheduleController {
         updated.setEndTime(dto.endTime());
         updated.setTitle(dto.title());
         updated.setColor(dto.color());
+        updated.setLocation(dto.location());
 
         GeneralSchedule saved = scheduleService.updateGeneralSchedule(id, updated);
 
@@ -143,7 +150,8 @@ public class ScheduleController {
                 saved.getStartTime(),
                 saved.getEndTime(),
                 saved.getTitle(),
-                saved.getColor()
+                saved.getColor(),
+                saved.getLocation()
         );
     }
 
@@ -167,6 +175,7 @@ public class ScheduleController {
         updated.setEndTime(dto.endTime());
         updated.setTitle(dto.title());
         updated.setColor(dto.color());
+        updated.setLocation(dto.location());
 
         WeeklySchedule saved = scheduleService.updateWeeklySchedule(id, updated);
 
@@ -176,7 +185,8 @@ public class ScheduleController {
                 saved.getStartTime(),
                 saved.getEndTime(),
                 saved.getTitle(),
-                saved.getColor()
+                saved.getColor(),
+                saved.getLocation()
         );
     }
 

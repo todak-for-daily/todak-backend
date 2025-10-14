@@ -44,6 +44,7 @@ public class ScheduleService {
                 general.setColor(weekly.getColor());
                 general.setSourceType(SourceType.WEEKLY);
                 general.setSourceId(saved.getId());
+                general.setLocation(weekly.getLocation());
 
                 generalRepo.save(general);
             }
@@ -76,6 +77,7 @@ public class ScheduleService {
         general.setStartTime(updated.getStartTime());
         general.setEndTime(updated.getEndTime());
         general.setColor(updated.getColor());
+        general.setLocation(updated.getLocation());
         return general;
     }
 
@@ -98,6 +100,7 @@ public class ScheduleService {
         weekly.setEndTime(updated.getEndTime());
         weekly.setTitle(updated.getTitle());
         weekly.setColor(updated.getColor());
+        weekly.setLocation(updated.getLocation());
 
         // General 일정 반영: 과거는 그대로 두고 미래만 수정하는 로직 필요
         List<GeneralSchedule> generals = generalRepo.findBySourceId(id);
@@ -107,6 +110,7 @@ public class ScheduleService {
                 g.setEndTime(updated.getEndTime());
                 g.setTitle(updated.getTitle());
                 g.setColor(updated.getColor());
+                g.setLocation(updated.getLocation());
             }
         }
 
@@ -163,6 +167,7 @@ public class ScheduleService {
                         g.setColor(weekly.getColor());
                         g.setSourceType(SourceType.WEEKLY);
                         g.setSourceId(weekly.getId());
+                        g.setLocation(weekly.getLocation());
                         generalRepo.save(g);
                     }
                     nextDate = nextDate.plusDays(1);

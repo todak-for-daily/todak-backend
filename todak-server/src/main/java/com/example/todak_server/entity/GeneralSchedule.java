@@ -21,7 +21,17 @@ public class GeneralSchedule {
     private LocalTime endTime;
 
     private String title;
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
     private String color;
+    private String location;
 
     public Long getId() {
         return id;

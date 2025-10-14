@@ -9,5 +9,6 @@ public record GeneralScheduleRequestDto(
         LocalTime startTime,
         LocalTime endTime,
         String title,
-        String color
+        String color,
+        String location
 ) {}
