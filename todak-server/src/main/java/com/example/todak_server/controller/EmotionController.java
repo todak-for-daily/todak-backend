@@ -1,0 +1,39 @@
+package com.example.todak_server.controller;
+
+import com.example.todak_server.ai.behavior.service.AiSessionContextService;
+import com.example.todak_server.dto.request.EmotionSelectRequest;
+import com.example.todak_server.dto.response.EmotionSelectResponse;
+import com.example.todak_server.service.EmotionCardService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/emotion")
+@RequiredArgsConstructor
+public class EmotionController {
+
+    private final EmotionCardService emotionCardService;
+    private final AiSessionContextService aiSessionContextService;
+
+    @PostMapping("/select")
+    public ResponseEntity<EmotionSelectResponse> selectEmotion(@RequestBody EmotionSelectRequest dto) {
+        Long memberId = 2L; // 임시로 고정
+
+        int level = emotionCardService.getLevel(dto.emotionCard());
+
+        if (level >= 4) { // 괜찮아요, 조금 힘들지만 괜찮아요.
+            return ResponseEntity.ok(
+                    new EmotionSelectResponse("end", "오늘은 괜찮아요 😊 추천이 필요 없어요.")
+            );
+        }
+
+        // before 감정 저장
+        aiSessionContextService.saveOrUpdate(memberId, dto.emotionCard(), null, null);
+
+        return ResponseEntity.ok(
+                new EmotionSelectResponse("situation", "조금 힘든 것 같아요. 어떤 상황인가요?")
+        );
+    }
+
+}
