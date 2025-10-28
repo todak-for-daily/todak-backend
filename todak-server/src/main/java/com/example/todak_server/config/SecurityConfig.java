@@ -26,7 +26,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth -> oauth
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .defaultSuccessUrl("/user", true)
+                        .defaultSuccessUrl("/token", true)
                 );
 
         return http.build();

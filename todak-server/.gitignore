@@ -1,3 +1,5 @@
+resources/application-secret.yml
+
 HELP.md
 .gradle
 build/
