@@ -5,7 +5,9 @@ import com.example.todak_server.entity.Member;
 import com.example.todak_server.entity.SourceType;
 import com.example.todak_server.entity.WeeklySchedule;
 import com.example.todak_server.repository.GeneralScheduleRepository;
+import com.example.todak_server.repository.MemberRepository;
 import com.example.todak_server.repository.WeeklyScheduleRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +23,12 @@ public class ScheduleService {
 
     private final WeeklyScheduleRepository weeklyRepo;
     private final GeneralScheduleRepository generalRepo;
+    private final MemberRepository memberRepo;
 
-    public ScheduleService(WeeklyScheduleRepository weeklyRepo, GeneralScheduleRepository generalRepo) {
+    public ScheduleService(WeeklyScheduleRepository weeklyRepo, GeneralScheduleRepository generalRepo, MemberRepository memberRepo) {
         this.weeklyRepo = weeklyRepo;
         this.generalRepo = generalRepo;
+        this.memberRepo = memberRepo;
     }
 
     // 1. 일주일 시간표 생성 + General 스냅샷 생성
@@ -82,11 +86,14 @@ public class ScheduleService {
     }
 
     // 6. General 일정 삭제 (soft delete)
-    public void deleteGeneralSchedule(Long id) {
-        GeneralSchedule general = generalRepo.findById(id)
-                .orElseThrow( () -> new IllegalArgumentException("general 일정을 찾을 수 없습니다."));
-        general.setDeleted(true);
+    public void deleteGeneralSchedule(Long memberId, Long id) {
+        Member member = memberRepo.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+        GeneralSchedule g = generalRepo.findByIdAndMember(id, member)
+                .orElseThrow(() -> new EntityNotFoundException("General not found"));
+        g.setDeleted(true);
     }
+
 
 
 
@@ -118,13 +125,17 @@ public class ScheduleService {
     }
 
     // Weekly 일정 삭제
-    public void deleteWeeklySchedule(Long id) {
-        WeeklySchedule weekly = weeklyRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Weekly 일정을 찾을 수 없습니다."));
+    public void deleteWeeklySchedule(Long memberId, Long id) {
+        Member member = memberRepo.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+
+        // 본인 소유 일정만 삭제
+        WeeklySchedule weekly = weeklyRepo.findByIdAndMember(id, member)
+                .orElseThrow(() -> new EntityNotFoundException("Weekly 일정을 찾을 수 없습니다."));
 
         weeklyRepo.delete(weekly);
 
-        // General 일정 처리: 과거는 유지, 미래는 삭제
+        // 연결된 General 일정 중 미래 일정만 삭제
         List<GeneralSchedule> generals = generalRepo.findBySourceId(id);
         for (GeneralSchedule g : generals) {
             if (g.getDate().isAfter(LocalDate.now())) {
@@ -132,6 +143,14 @@ public class ScheduleService {
             }
         }
     }
+
+    // Weekly 일정 요일별 조회
+    public List<WeeklySchedule> getWeeklySchedule(Member member,
+                                                  com.example.todak_server.entity.DayOfWeek dayOfWeek) {
+        return weeklyRepo.findByMemberAndDayOfWeek(member, dayOfWeek);
+    }
+
+
 
     /**
      * 매주 월요일 0시에 자동으로 General 일정 연장

@@ -31,8 +31,7 @@ public class AiBehaviorService {
     private final EmotionCardService emotionCardService;
     private final AiSessionContextService aiSessionContextService;
 
-    public AiRecommendResponse getRecommendations(AiRecommendRequest dto) {
-        Long memberId = dto.memberId();
+    public AiRecommendResponse getRecommendations(Long memberId, AiRecommendRequest dto) {
 
         // 기존 감정 정보 복원
         AiSessionContext context = aiSessionContextService.findByMemberId(memberId)
@@ -40,7 +39,7 @@ public class AiBehaviorService {
 
         String emotionCard = context.getEmotionCard();
         String situationCardId = dto.situationCardId();
-        Member member = memberRepository.findById(dto.memberId())
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         List<String> habits = member.getHabits()
