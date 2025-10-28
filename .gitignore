@@ -1,1 +1,3 @@
 todak-server/src/main/resources/application-secret.yml
+todak-server/.env
+todak-server/vertex-key.json

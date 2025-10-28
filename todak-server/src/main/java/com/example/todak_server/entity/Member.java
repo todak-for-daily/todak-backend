@@ -1,9 +1,9 @@
 package com.example.todak_server.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Member {
@@ -20,6 +20,30 @@ public class Member {
 
     private Integer emoPeriod;
     private Integer dayAlarm;
+
+    // Habit 연결
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    private List<Habit> habits = new ArrayList<>();
+
+    public List<GeneralSchedule> getGeneralSchedules() {
+        return generalSchedules;
+    }
+
+    public void setGeneralSchedules(List<GeneralSchedule> generalSchedules) {
+        this.generalSchedules = generalSchedules;
+    }
+
+    public List<Habit> getHabits() {
+        return habits;
+    }
+
+    public void setHabits(List<Habit> habits) {
+        this.habits = habits;
+    }
+
+    // GeneralSchedule 연결
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<GeneralSchedule> generalSchedules = new ArrayList<>();
 
     public Integer getEmoPeriod() {
         return emoPeriod;
