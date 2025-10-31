@@ -6,6 +6,7 @@ import com.example.todak_server.dto.response.EmotionSelectResponse;
 import com.example.todak_server.service.EmotionCardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,8 +18,7 @@ public class EmotionController {
     private final AiSessionContextService aiSessionContextService;
 
     @PostMapping("/select")
-    public ResponseEntity<EmotionSelectResponse> selectEmotion(@RequestBody EmotionSelectRequest dto) {
-        Long memberId = 2L; // 임시로 고정
+    public ResponseEntity<EmotionSelectResponse> selectEmotion(@AuthenticationPrincipal(expression = "id") Long memberId, @RequestBody EmotionSelectRequest dto) {
 
         int level = emotionCardService.getLevel(dto.emotionCard());
 

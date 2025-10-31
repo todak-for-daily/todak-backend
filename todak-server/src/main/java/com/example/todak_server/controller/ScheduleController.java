@@ -7,6 +7,7 @@ import com.example.todak_server.dto.response.WeeklyScheduleResponseDto;
 import com.example.todak_server.entity.*;
 import com.example.todak_server.repository.MemberRepository;
 import com.example.todak_server.service.ScheduleService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -28,8 +29,8 @@ public class ScheduleController {
 
     // Weekly 일정 생성 + General 스냅샷 생성
     @PostMapping("/weekly")
-    public WeeklyScheduleResponseDto createWeeklySchedule(@RequestBody WeeklyScheduleRequestDto dto) {
-        Member member = memberRepository.findById(dto.memberId())
+    public WeeklyScheduleResponseDto createWeeklySchedule(@RequestBody WeeklyScheduleRequestDto dto, @AuthenticationPrincipal(expression = "id") Long memberId) {
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         WeeklySchedule weekly = new WeeklySchedule();
@@ -58,13 +59,24 @@ public class ScheduleController {
         );
     }
 
-    // 특정 멤버의 Weekly 일정 전체 조회
-    @GetMapping("/weekly/{memberId}")
-    public List<WeeklyScheduleResponseDto> getWeeklySchedules(@PathVariable Long memberId) {
-        Member member = new Member();
-        member.setId(memberId);
+    // 특정 멤버의 Weekly 일정 특정 요일 or 전체 조회 (day 없으면 전체 조회)
+    @GetMapping("/weekly")
+    public List<WeeklyScheduleResponseDto> getWeeklySchedules(
+            @AuthenticationPrincipal(expression = "id") Long memberId,
+            @RequestParam(value = "day", required = false) String day
+    ) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
-        return scheduleService.getWeeklySchedule(member).stream()
+        //  day가 있으면 요일별, 없으면 전체
+        var list = (day == null)
+                ? scheduleService.getWeeklySchedule(member)
+                : scheduleService.getWeeklySchedule(
+                member,
+                com.example.todak_server.entity.DayOfWeek.valueOf(day.toUpperCase())
+        );
+
+        return list.stream()
                 .map(w -> new WeeklyScheduleResponseDto(
                         w.getId(),
                         w.getDayOfWeek().name(),
@@ -77,9 +89,10 @@ public class ScheduleController {
                 .toList();
     }
 
+
     // 특정 멤버의 General 일정 조회 (기간별)
-    @GetMapping("/general/{memberId}")
-    public List<GeneralScheduleResponseDto> getGeneralSchedules(@PathVariable Long memberId,
+    @GetMapping("/general")
+    public List<GeneralScheduleResponseDto> getGeneralSchedules( @AuthenticationPrincipal(expression = "id") Long memberId,
                                                                 @RequestParam LocalDate startDate,
                                                                 @RequestParam LocalDate endDate) {
         Member member = new Member();
@@ -100,8 +113,8 @@ public class ScheduleController {
 
     // General 일정 단일 생성
     @PostMapping("/general")
-    public GeneralScheduleResponseDto createGeneral(@RequestBody GeneralScheduleRequestDto dto) {
-        Member member = memberRepository.findById(dto.memberId())
+    public GeneralScheduleResponseDto createGeneral(@RequestBody GeneralScheduleRequestDto dto, @AuthenticationPrincipal(expression = "id") Long memberId) {
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         GeneralSchedule general = new GeneralSchedule();
@@ -128,10 +141,10 @@ public class ScheduleController {
 
     // General 일정 수정
     @PutMapping("/general/{id}")
-    public GeneralScheduleResponseDto updateGeneral(@PathVariable Long id,
-                                                    @RequestBody GeneralScheduleRequestDto dto) {
+    public GeneralScheduleResponseDto updateGeneral( @AuthenticationPrincipal(expression = "id") Long memberId,
+                                                    @RequestBody GeneralScheduleRequestDto dto, @PathVariable Long id) {
         Member member = new Member();
-        member.setId(dto.memberId());
+        member.setId(memberId);
 
         GeneralSchedule updated = new GeneralSchedule();
         updated.setMember(member);
@@ -157,16 +170,17 @@ public class ScheduleController {
 
     // General 일정 삭제 (soft delete)
     @DeleteMapping("/general/{id}")
-    public void deleteGeneral(@PathVariable Long id) {
-        scheduleService.deleteGeneralSchedule(id);
+    public void deleteGeneral(@PathVariable Long id, @AuthenticationPrincipal(expression = "id") Long memberId) {
+        scheduleService.deleteGeneralSchedule(memberId, id);
     }
 
     // Weekly 일정 수정
     @PutMapping("/weekly/{id}")
     public WeeklyScheduleResponseDto updateWeekly(@PathVariable Long id,
+                                                  @AuthenticationPrincipal(expression = "id") Long memberId,
                                                   @RequestBody WeeklyScheduleRequestDto dto) {
         Member member = new Member();
-        member.setId(dto.memberId());
+        member.setId(memberId);
 
         WeeklySchedule updated = new WeeklySchedule();
         updated.setMember(member);
@@ -192,8 +206,8 @@ public class ScheduleController {
 
     // Weekly 일정 삭제
     @DeleteMapping("/weekly/{id}")
-    public void deleteWeekly(@PathVariable Long id) {
-        scheduleService.deleteWeeklySchedule(id);
+    public void deleteWeekly(@PathVariable Long id, @AuthenticationPrincipal(expression = "id")Long memberId) {
+        scheduleService.deleteWeeklySchedule(memberId,id);
     }
 
 }

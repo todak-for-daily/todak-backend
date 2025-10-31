@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface GeneralScheduleRepository extends JpaRepository<GeneralSchedule,Long> {
 
@@ -17,4 +18,7 @@ public interface GeneralScheduleRepository extends JpaRepository<GeneralSchedule
 
     // sourceId로 연결된 general 일정 찾기 (일주일 시간표로 생성된 일정들 찾기.)
     List<GeneralSchedule> findBySourceId(Long sourceId);
+
+    Optional<GeneralSchedule> findByIdAndMember(Long id, Member member);
+
 }

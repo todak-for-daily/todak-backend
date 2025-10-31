@@ -4,7 +4,9 @@ import com.example.todak_server.entity.Habit;
 import com.example.todak_server.entity.Member;
 import com.example.todak_server.repository.HabitRepository;
 import com.example.todak_server.repository.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,11 +31,21 @@ public class HabitService {
     }
 
     public List<Habit> getHabits(Long memberId) {
-        return habitRepository.findByMemberId(memberId);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+        return habitRepository.findByMember(member);
     }
 
-    public void deleteHabit(Long habitId) {
-        habitRepository.deleteById(habitId);
+    public void deleteHabit(Long memberId, Long habitId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Member not found"));
+
+        Habit habit = habitRepository.findByIdAndMember(habitId, member)
+                .orElseThrow(() -> new EntityNotFoundException("Habit not found"));
+
+        habitRepository.delete(habit);
     }
+
 
 }
