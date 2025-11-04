@@ -3,3 +3,6 @@ spring:
     name: todak-server
   profiles:
     active: secret
+firebase:
+  config:
+    path: classpath:firebase/serviceAccountKey.json
