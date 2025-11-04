@@ -1,14 +1,14 @@
 package com.example.todak_server.repository;
 
 import com.example.todak_server.entity.Member;
-import com.example.todak_server.entity.UserSetting;
+import com.example.todak_server.entity.MemberSetting;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserSettingRepository extends JpaRepository<UserSetting, Long> {
+public interface MemberSettingRepository extends JpaRepository<MemberSetting, Long> {
 
-    Optional<UserSetting> findByMember(Member member);
+    Optional<MemberSetting> findByMember(Member member);
 }

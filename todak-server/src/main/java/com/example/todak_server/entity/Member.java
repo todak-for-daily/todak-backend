@@ -21,6 +21,8 @@ public class Member {
     private Integer emoPeriod;
     private Integer dayAlarm;
 
+    private String fcmToken;
+
     // Habit 연결
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<Habit> habits = new ArrayList<>();
@@ -101,5 +103,11 @@ public class Member {
         this.nickname = nickname;
     }
 
+    public String getFcmToken() {
+        return fcmToken;
+    }
 
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 }
