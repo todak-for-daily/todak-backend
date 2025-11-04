@@ -6,19 +6,19 @@ import lombok.*;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "user_settings")
+@Table(name = "member_setting")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserSetting {
+public class MemberSetting {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "member_id")
     private Member member;
 
     private Integer eventAlarmMinutes = 30;        // 일정 알림 주기

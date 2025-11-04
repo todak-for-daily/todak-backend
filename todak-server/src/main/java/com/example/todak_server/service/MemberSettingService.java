@@ -1,33 +1,33 @@
 package com.example.todak_server.service;
 
-import com.example.todak_server.dto.UserSettingRequest;
-import com.example.todak_server.dto.UserSettingResponse;
+import com.example.todak_server.dto.MemberSettingRequest;
+import com.example.todak_server.dto.MemberSettingResponse;
 import com.example.todak_server.entity.Member;
-import com.example.todak_server.entity.UserSetting;
-import com.example.todak_server.repository.UserSettingRepository;
+import com.example.todak_server.entity.MemberSetting;
+import com.example.todak_server.repository.MemberSettingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class UserSettingService {
+public class MemberSettingService {
 
-    private final UserSettingRepository userSettingRepository;
+    private final MemberSettingRepository userSettingRepository;
 
     @Transactional(readOnly = true)
-    public UserSettingResponse getSetting(Member member) {
-        UserSetting setting = userSettingRepository.findByMember(member)
+    public MemberSettingResponse getSetting(Member member) {
+        MemberSetting setting = userSettingRepository.findByMember(member)
                 .orElseGet(() -> userSettingRepository.save(
-                        UserSetting.builder().member(member).build()
+                        MemberSetting.builder().member(member).build()
                 ));
-        return UserSettingResponse.from(setting);
+        return MemberSettingResponse.from(setting);
     }
 
     @Transactional
-    public UserSettingResponse updateSetting(Member member, UserSettingRequest req) {
-        UserSetting setting = userSettingRepository.findByMember(member)
-                .orElseGet(() -> UserSetting.builder().member(member).build());
+    public MemberSettingResponse updateSetting(Member member, MemberSettingRequest req) {
+        MemberSetting setting = userSettingRepository.findByMember(member)
+                .orElseGet(() -> MemberSetting.builder().member(member).build());
 
         if (req.getEventAlarmMinutes() != null)
             setting.setEventAlarmMinutes(req.getEventAlarmMinutes());
@@ -39,6 +39,6 @@ public class UserSettingService {
             setting.setEmotionActiveEnd(req.getEmotionActiveEnd());
 
         userSettingRepository.save(setting);
-        return UserSettingResponse.from(setting);
+        return MemberSettingResponse.from(setting);
     }
 }
