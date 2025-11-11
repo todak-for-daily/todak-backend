@@ -7,5 +7,7 @@ spring:
 firebase:
   config:
     path: classpath:firebase/serviceAccountKey.json
+  storage:
+    bucket: todak-for-daily.firebasestorage.app
 env:
   FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
