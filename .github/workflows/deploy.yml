@@ -59,6 +59,7 @@ jobs:
       # SSH 키 생성
       - name: Set up SSH key
         run: |
+          mkdir -p ~/.ssh
           echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/gcp_key.pem
           chmod 600 ~/.ssh/gcp_key.pem
 
