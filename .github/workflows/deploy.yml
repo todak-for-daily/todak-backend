@@ -47,6 +47,7 @@ jobs:
 
       # 5. 빌드
       - name: Build with Gradle
+        working-directory: todak-server
         run: ./gradlew clean build -x test
 
       # 6. GCP SSH 키 세팅
