@@ -20,7 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
         info = @Info(
                 title = "TODAK API 명세서",
                 version = "v1.0",
-                description = "토닥(TODAK) 서버 API 문서입니다.<br>인증이 필요한 요청은 우측 상단 🔒Authorize 버튼을 클릭하고 JWT 토큰을 입력하세요."
+                description = "토닥이 서버 API 문서입니다.<br>인증이 필요한 요청은 우측 상단 🔒Authorize 버튼을 클릭하고 JWT(액세스) 토큰을 입력하세요."
         ),
         security = {
                 @SecurityRequirement(name = "BearerAuth")
@@ -45,7 +45,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/login**", "/oauth2/**",
                                 "/token", "/api/auth/**",
-                                "/actuator/**", "/swagger/**", "/swagger-ui/**", "/v3/**", "/api/**"
+                                "/actuator/**", "/swagger/**", "/swagger-ui/**", "/v3/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

@@ -16,7 +16,7 @@ import java.net.URI;
 @RequestMapping("/api/auth/login")
 public class AuthLoginController {
 
-    @Operation(summary = "로그인 창", description = "로그인 창으로 이동 후 로그인 완료 처리까지")
+    @Operation(summary = "로그인 창", description = "로그인 창으로 이동 후 액세스 토큰이 json으로 반환됨.")
     @GetMapping("/google")
     public ResponseEntity<Void> start(HttpServletRequest req) {
         String url = ServletUriComponentsBuilder.fromRequest(req)
