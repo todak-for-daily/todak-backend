@@ -2,7 +2,10 @@ spring:
   application:
     name: todak-server
   profiles:
-    active: secret
+    active: dev
+    include: secret
 firebase:
   config:
     path: classpath:firebase/serviceAccountKey.json
+env:
+  FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
