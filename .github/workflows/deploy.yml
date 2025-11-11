@@ -45,28 +45,33 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle
 
-      # 5. 빌드
+      # 5. 권한 설정 
+      - name: Grant execute permission for gradlew
+        working-directory: todak-server
+        run: chmod +x gradlew
+  
+      # 6. 빌드
       - name: Build with Gradle
         working-directory: todak-server
         run: ./gradlew clean build -x test
 
-      # 6. GCP SSH 키 세팅
+      # 7. GCP SSH 키 세팅
       - name: Set up SSH key
         run: |
           echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
 
-      # 7. GCP VM에 배포
+      # 8. GCP VM에 배포
       - name: Deploy to GCP VM
         run: |
-          echo "🚀 Deploying to GCP VM..."
+          echo "Deploying to GCP VM..."
           scp -i private_key.pem -o StrictHostKeyChecking=no build/libs/*.jar ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:/home/${{ secrets.GCP_VM_USER }}/todak-server/todak-server.jar
           scp -i private_key.pem -o StrictHostKeyChecking=no .env ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:/home/${{ secrets.GCP_VM_USER }}/todak-server/.env
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "
             echo '🛠 Stopping old process...'
             pkill -f 'todak-server.jar' || true
             cd /home/${{ secrets.GCP_VM_USER }}/todak-server
-            echo '🚀 Starting new version...'
+            echo 'Starting new version...'
             nohup java -jar todak-server.jar --spring.profiles.active=${{ secrets.SPRING_PROFILES_ACTIVE }} > app.log 2>&1 &
             echo 'Deployment finished!'
           "
