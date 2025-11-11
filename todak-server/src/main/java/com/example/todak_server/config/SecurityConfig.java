@@ -24,11 +24,11 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/login**", "/oauth2/**",
                                 "/token", "/api/auth/**",
-                                "/actuator/**", "/swagger/**", "/v3/**"
+                                "/actuator/**", "/swagger/**", "/swagger-ui/**", "/v3/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class) // ✅ 필터 등록
+                .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class) // 필터 등록
                 .oauth2Login(oauth -> oauth
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .defaultSuccessUrl("/token", true)
