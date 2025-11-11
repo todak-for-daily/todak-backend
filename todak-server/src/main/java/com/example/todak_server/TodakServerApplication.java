@@ -18,7 +18,7 @@ public class TodakServerApplication {
 		String vertexKey = dotenv.get("VERTEX_API_KEY");
 		String firebaseConfigPath = dotenv.get("FIREBASE_CONFIG_PATH");
 		String firebaseConfig = dotenv.get("FIREBASE_CONFIG");
-		
+
 		System.out.println("[DEBUG] Working dir: " + System.getProperty("user.dir"));
 		System.out.println("[DEBUG] .env Firebase path = " + firebaseConfigPath);
 
