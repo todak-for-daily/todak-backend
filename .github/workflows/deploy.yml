@@ -56,11 +56,12 @@ jobs:
         run: ./gradlew clean build -x test
 
       # 7. GCP SSH 키 세팅
-      # SSH 키 생성
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/gcp_key.pem
+          cat > ~/.ssh/gcp_key.pem <<'EOF'
+          ${{ secrets.GCP_SSH_KEY }}
+          EOF
           chmod 600 ~/.ssh/gcp_key.pem
 
       # 8. GCP VM에 배포
