@@ -68,5 +68,5 @@ jobs:
         run: |
           echo "Deploying to GCP VM..."
           scp -i private_key.pem build/libs/*.jar \
-            ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_IP }}:/home/${{ secrets.GCP_VM_USER }}/app/
+            ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:/home/${{ secrets.GCP_VM_USER }}/app/
 
