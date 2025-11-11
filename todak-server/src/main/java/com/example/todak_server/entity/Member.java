@@ -23,6 +23,11 @@ public class Member {
 
     private String fcmToken;
 
+    @Column(columnDefinition = "TEXT")
+    private String avatarUrl;
+
+
+
     // Habit 연결
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<Habit> habits = new ArrayList<>();
@@ -110,4 +115,8 @@ public class Member {
     public void setFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
     }
+
+    public String getAvatarUrl() {return avatarUrl;}
+
+    public void setAvatarUrl(String avatarUrl) {this.avatarUrl = avatarUrl;}
 }
