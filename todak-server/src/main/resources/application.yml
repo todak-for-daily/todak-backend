@@ -6,3 +6,5 @@ spring:
 firebase:
   config:
     path: classpath:firebase/serviceAccountKey.json
+  storage:
+    bucket: todak-for-daily.firebasestorage.app
