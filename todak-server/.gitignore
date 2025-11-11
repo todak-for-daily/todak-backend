@@ -1,5 +1,6 @@
 resources/application-secret.yml
-todak-server/src/main/resources/firebase/serviceAccountKey.json
+resources/application-dev.yml
+src/main/resources/firebase/serviceAccountKey.json
 .env
 vertex-key.json
 
