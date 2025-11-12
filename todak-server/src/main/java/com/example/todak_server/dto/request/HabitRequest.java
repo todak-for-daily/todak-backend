@@ -1,4 +1,9 @@
 package com.example.todak_server.dto.request;
 
-public record HabitRequest(String content) {
+import io.swagger.v3.oas.annotations.media.Schema;
+
+public record HabitRequest(
+        @Schema(description = "사용자의 행동 특성 문장", example = "불안할 때는 반복적으로 손톱을 물어요.")
+        String content
+) {
 }
