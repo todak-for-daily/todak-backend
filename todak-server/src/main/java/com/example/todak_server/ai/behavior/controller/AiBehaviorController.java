@@ -11,10 +11,12 @@ import com.example.todak_server.dto.request.AiActionDetailRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Tag(name = "기능2: 감정카드 선택 후 행동들 관련 API")
 @RestController
 @RequestMapping("/api/ai")
@@ -25,13 +27,17 @@ public class AiBehaviorController {
     private final AiSessionContextService aiSessionContextService;
     private final AiFeedbackService aiFeedbackService;
 
+    //@AuthenticationPrincipal(expression = "id") Long memberId
     // 감정/상황 기반 추천 행동 3가지 받아오기
     @Operation(
             summary = "감정/상황 기반 행동 추천 3가지",
             description = "사용자가 선택한 감정/상황 카드를 기반으로 3가지 추천 행동을 반환."
     )
     @PostMapping("/recommend")
-    public ResponseEntity<AiRecommendResponse> recommend(@AuthenticationPrincipal(expression = "id") Long memberId, @RequestBody AiRecommendRequest dto) {
+    public ResponseEntity<AiRecommendResponse> recommend( @RequestBody AiRecommendRequest dto) {
+
+        Long memberId = 1L;
+        log.info(">>> /api/recommend controller CALLED, memberId={}", memberId);
 
         AiRecommendResponse response = aiBehaviorService.getRecommendations(memberId,dto);
         aiSessionContextService.saveOrUpdate(memberId, null, dto.situationCardId(), null);

@@ -3,6 +3,7 @@ package com.example.todak_server.ai.common;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class VertexAiClient {
 
@@ -28,10 +30,13 @@ public class VertexAiClient {
     private String model;
 
     public List<String> requestRecommendations(Map<String, Object> payload) throws IOException {
+        log.info(">>> Vertex request payload = {}", payload);
+
         String url = String.format(
                 "https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/google/models/%s:generateContent",
                 location, projectId, location, model
         );
+        log.info(">>> Vertex URL = {}", url);
 
         // Access Token 발급
         GoogleCredentials credentials = GoogleCredentials
@@ -63,6 +68,8 @@ public class VertexAiClient {
         if (res == null || !res.containsKey("candidates")) {
             return List.of("추천 결과 없음");
         }
+        log.info(">>> Vertex raw response status={}, body={}", response.getStatusCode(), response.getBody());
+
 
         // Gemini 응답 파싱
         List<Map<String, Object>> candidates = (List<Map<String, Object>>) res.get("candidates");
@@ -74,17 +81,23 @@ public class VertexAiClient {
     }
 
     private String makePrompt(Map<String, Object> payload) {
+
         String emotion = (String) payload.get("emotion_card");
         Map<String, Object> situation = (Map<String, Object>) payload.get("situation_card");
-        List<String> habits = (List<String>) payload.get("behavior_habits");
+        Map<String, String> behaviorHabits = (Map<String, String>) payload.get("behavior_habits");
         String schedule = (String) payload.get("current_schedule");
+
+        StringBuilder habitsText = new StringBuilder();
+        behaviorHabits.forEach((situationKey, behavior) -> {
+            habitsText.append(String.format("%s: %s\n", situationKey, behavior));
+        });
 
         return String.format("""
             사용자의 감정은 '%s'이고, 상황은 '%s'입니다.
             사용자의 습관은 %s이며, 일정은 '%s'입니다.
             이 상황에서 할 수 있는 간단한 행동 3가지를 JSON 배열로만 반환해주세요.
             예시: ["심호흡하기", "산책하기", "조용한 곳으로 이동하기"]
-            """, emotion, situation.get("text"), habits, schedule);
+            """, emotion, situation.get("text"), habitsText.toString(), schedule);
     }
 
     private List<String> parseActions(String text) {

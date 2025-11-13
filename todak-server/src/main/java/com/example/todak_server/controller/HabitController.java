@@ -26,7 +26,7 @@ public class HabitController {
     @Operation(summary = "습관 생성", description = "사용자의 새로운 습관 등록")
     @PostMapping
     public ResponseEntity<HabitResponse> createHabit(@AuthenticationPrincipal(expression = "id") Long memberId, @RequestBody HabitRequest habitRequest) {
-        Habit habit = habitService.createHabit(memberId, habitRequest.content());
+        Habit habit = habitService.createHabit(memberId, habitRequest.situation(), habitRequest.content());
         System.out.println(memberId);
         return ResponseEntity.ok(HabitResponse.from(habit));
     }
@@ -39,6 +39,17 @@ public class HabitController {
                 .map(HabitResponse::from)
                 .toList();
         return ResponseEntity.ok(habits);
+    }
+
+    @Operation(summary = "습관 수정", description = "situation과 content 모두 전달해야 합니다.")
+    @PutMapping("/{habitId}")
+    public ResponseEntity<HabitResponse> updateHabit(
+            @AuthenticationPrincipal(expression = "id") Long memberId,
+            @PathVariable Long habitId,
+            @RequestBody HabitRequest request
+    ) {
+        Habit updated = habitService.updateHabit(memberId, habitId, request.situation(), request.content());
+        return ResponseEntity.ok(HabitResponse.from(updated));
     }
 
     @Operation(summary = "습관 삭제", description = "선택한 습관을 삭제")

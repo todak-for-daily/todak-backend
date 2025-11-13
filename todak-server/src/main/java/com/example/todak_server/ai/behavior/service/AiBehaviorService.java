@@ -11,6 +11,7 @@ import com.example.todak_server.entity.Member;
 import com.example.todak_server.repository.MemberRepository;
 import com.example.todak_server.service.EmotionCardService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -18,9 +19,11 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.example.todak_server.entity.Habit;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiBehaviorService {
@@ -32,6 +35,8 @@ public class AiBehaviorService {
     private final AiSessionContextService aiSessionContextService;
 
     public AiRecommendResponse getRecommendations(Long memberId, AiRecommendRequest dto) {
+        log.info(">>> getRecommendations CALLED, memberId={}", memberId);
+
 
         // 기존 감정 정보 복원
         AiSessionContext context = aiSessionContextService.findByMemberId(memberId)
@@ -42,14 +47,16 @@ public class AiBehaviorService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
-        List<String> habits = member.getHabits()
-                .stream()
-                .map(Habit::getContent)
-                .toList();
+        Map<String, String> habitMap = member.getHabits().stream()
+                .collect(Collectors.toMap(
+                        Habit::getSituation,
+                        Habit::getContent,
+                        (oldValue, newValue) -> newValue // 같은 key면 마지막 값으로 덮어쓰기
+                ));
 
         String currentSchedule = findCurrentSchedule(member);
 
-        Map<String, Object> payload = aiRequestBuilder.build(dto, habits, currentSchedule);
+        Map<String, Object> payload = aiRequestBuilder.build(dto, habitMap, currentSchedule);
 
         List<String> actions;
         try {

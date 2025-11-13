@@ -16,10 +16,14 @@ public class Habit {
     private Member member;
 
     @Column(nullable = false)
+    private String situation;
+
+    @Column(nullable = false)
     private String content;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
 
     public Long getId() {
         return id;
@@ -60,6 +64,11 @@ public class Habit {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public String getSituation() { return situation; }
+
+    public void setSituation(String situation) { this.situation = situation; }
+
 
     @PrePersist
     protected void onCreate() {
