@@ -27,16 +27,14 @@ public class AiBehaviorController {
     private final AiSessionContextService aiSessionContextService;
     private final AiFeedbackService aiFeedbackService;
 
-    //@AuthenticationPrincipal(expression = "id") Long memberId
     // 감정/상황 기반 추천 행동 3가지 받아오기
     @Operation(
             summary = "감정/상황 기반 행동 추천 3가지",
             description = "사용자가 선택한 감정/상황 카드를 기반으로 3가지 추천 행동을 반환."
     )
     @PostMapping("/recommend")
-    public ResponseEntity<AiRecommendResponse> recommend( @RequestBody AiRecommendRequest dto) {
+    public ResponseEntity<AiRecommendResponse> recommend( @AuthenticationPrincipal(expression = "id") Long memberId, @RequestBody AiRecommendRequest dto) {
 
-        Long memberId = 1L;
         log.info(">>> /api/recommend controller CALLED, memberId={}", memberId);
 
         AiRecommendResponse response = aiBehaviorService.getRecommendations(memberId,dto);
