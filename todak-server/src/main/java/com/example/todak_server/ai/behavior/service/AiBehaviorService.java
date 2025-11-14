@@ -1,5 +1,6 @@
 package com.example.todak_server.ai.behavior.service;
 
+import com.example.todak_server.ai.behavior.dto.AiRecommendItem;
 import com.example.todak_server.ai.behavior.dto.request.AiRecommendRequest;
 import com.example.todak_server.ai.behavior.dto.response.AiActionDetailResponse;
 import com.example.todak_server.ai.behavior.dto.response.AiRecommendResponse;
@@ -58,13 +59,13 @@ public class AiBehaviorService {
 
         Map<String, Object> payload = aiRequestBuilder.build(dto, habitMap, currentSchedule);
 
-        List<String> actions;
+        List<AiRecommendItem> actions;
         try {
             actions = vertexAiClient.requestRecommendations(payload);
         } catch (IOException e) {
             // 예외 로그 출력하고 기본 응답 리턴
             e.printStackTrace();
-            actions = List.of("AI 요청 중 오류 발생");
+            actions = List.of(new AiRecommendItem("AI 요청 중 오류 발생", "⚠️"));
         }
 
         return new AiRecommendResponse(actions);
@@ -114,10 +115,18 @@ public class AiBehaviorService {
             // Vertex AI 호출
             List<String> steps = vertexAiClient.requestActionSteps(payload);
 
-            return new AiActionDetailResponse(dto.selectedAction(), steps);
+            return new AiActionDetailResponse(
+                    dto.selectedAction(),
+                    dto.selectedEmojis(), // 프론트에서 들어온 값 그대로 쓰기
+                    steps
+            );
         } catch (Exception e) {
             e.printStackTrace();
-            return new AiActionDetailResponse(dto.selectedAction(), List.of("단계별 가이드 생성 실패"));
+            return new AiActionDetailResponse(
+                    dto.selectedAction(),
+                    dto.selectedEmojis(),
+                    List.of("단계별 가이드 생성 실패")
+            );
         }
     }
 
