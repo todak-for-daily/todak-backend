@@ -13,6 +13,7 @@ import com.example.todak_server.repository.MemberRepository;
 import com.example.todak_server.service.EmotionCardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -34,6 +35,26 @@ public class AiBehaviorService {
     private final VertexAiClient vertexAiClient;
     private final EmotionCardService emotionCardService;
     private final AiSessionContextService aiSessionContextService;
+
+    // 위험 행동 리스트
+    private static final List<String> FORBIDDEN_KEYWORDS = List.of(
+            "주머니에 손","양손 주머니","양손 귀 막기",
+            "눈 감고 걷","눈 감고 서","눈 감고 이동",
+            "통로에 서","문 앞","난간",
+            "손 놓고","빠르게 이동","뛰기","달리기",
+            "휴대폰 보며 걷","콘센트","임의 조작","칼",
+            "끓는","뜨거운","지게차","랙","팔레트","사다리",
+            "세제","분무","모르는 사람 촬영","타인 신체 만지",
+            "바닥에 눕","의자 위에 서"
+    );
+
+    // 폴백할 기본 리스트
+    private static final List<AiRecommendItem> SAFE_FALLBACK_SET = List.of(
+            new AiRecommendItem("벽 쪽으로 한 걸음 가기", "🚶➡️🧱"),
+            new AiRecommendItem("손잡이 꽉 잡기 10초 하기", "🤲🪑"),
+            new AiRecommendItem("타이머 3분 켜기", "⏱️")
+    );
+    private final ResourceLoader resourceLoader;
 
     public AiRecommendResponse getRecommendations(Long memberId, AiRecommendRequest dto) {
         log.info(">>> getRecommendations CALLED, memberId={}", memberId);
@@ -68,8 +89,59 @@ public class AiBehaviorService {
             actions = List.of(new AiRecommendItem("AI 요청 중 오류 발생", "⚠️"));
         }
 
-        return new AiRecommendResponse(actions);
+        List<AiRecommendItem> safeActions = sanitizeAndFallback(actions); // 위험 행동 차단 및 기본 행동 폴백
+
+        return new AiRecommendResponse(safeActions);
     }
+
+    List<AiRecommendItem> sanitizeAndFallback(List<AiRecommendItem> raw) {
+
+        // 1. 금지어 포함된 것 제거
+        List<AiRecommendItem> filtered = raw.stream()
+                .filter(item -> item.action() != null && !item.action().isBlank())
+                .filter(item -> !isForbidden(item))
+                .toList();
+
+        // 2. 중복 제거 (동일한 Action 텍스트는 하나만 되도록.)
+        List<AiRecommendItem> deduped = filtered.stream()
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(
+                                AiRecommendItem::action,
+                                item -> item,
+                                (a,b) -> a // 중복 시 첫번째 거 유지
+                        ),
+                        m -> m.values().stream().toList()
+                ));
+        List<AiRecommendItem> result = new java.util.ArrayList<>(deduped);
+
+        // 3. 최소 3개 채우기 (부족하면 기본 세트에서 보충)
+        if(result.size() < 3) {
+            var existingTitles = result.stream()
+                    .map(AiRecommendItem::action)
+                    .collect(Collectors.toList());
+
+            for(AiRecommendItem safe : SAFE_FALLBACK_SET) {
+                if(result.size() >= 3) break;
+                if(!existingTitles.contains(safe.action())) {
+                    result.add(safe);
+                }
+            }
+        }
+
+        // 4. 그래도 아무것도 없으면 기본 세트 전체 사용
+        if(result.isEmpty()) {
+            result = new java.util.ArrayList<>(SAFE_FALLBACK_SET);
+        }
+
+        // 3개까지만 잘라서 return
+        return result.subList(0, Math.min(3, result.size()));
+    }
+
+    private boolean isForbidden(AiRecommendItem item) {
+        String title = item.action();
+        return FORBIDDEN_KEYWORDS.stream().anyMatch(title::contains);
+    }
+
 
 
     // 현재 시간에 포함되는 일정 반환 / 없다면 "현재 일정 없음"
