@@ -5,8 +5,8 @@ spring:
     active: dev
     include: secret
 firebase:
-  config:
-    path: classpath:firebase/serviceAccountKey.json
+#  config:
+#    path: classpath:firebase/serviceAccountKey.json
   storage:
     bucket: todak-for-daily.firebasestorage.app
 env:
