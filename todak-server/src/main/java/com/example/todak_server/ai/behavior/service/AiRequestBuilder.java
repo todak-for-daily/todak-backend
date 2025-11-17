@@ -8,14 +8,14 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
-// 감정카드, 상황카드, 행동 리스트, 현재 일정을 하나의 json으로 묶어줌.
+// 감정카드, 상황카드, 행동 리스트(상황:내용), 현재 일정을 하나의 json으로 묶어줌.
 @Component
 @RequiredArgsConstructor
 public class AiRequestBuilder {
 
     private final SituationCardService situationCardService;
 
-    public Map<String, Object> build(AiRecommendRequest dto, List<String> habits, String schedule) {
+    public Map<String, Object> build(AiRecommendRequest dto, Map<String,String> situationHabits, String schedule) {
         String situationText = situationCardService.getSituationText(dto.situationCardId());
 
         Map<String, Object> situationCard = Map.of(
@@ -25,7 +25,7 @@ public class AiRequestBuilder {
 
         return Map.of(
                 "situation_card", situationCard,
-                "behavior_habits", habits,
+                "behavior_habits", situationHabits,
                 "current_schedule", schedule
         );
     }
