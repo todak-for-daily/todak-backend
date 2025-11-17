@@ -7,7 +7,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class FirebaseConfig {
@@ -18,20 +21,13 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() {
         try {
-            String firebaseConfig = System.getProperty("FIREBASE_CONFIG");
-            String firebaseConfigPath = System.getProperty("FIREBASE_CONFIG_PATH");
+            String firebaseConfigPath = System.getenv("FIREBASE_CONFIG_PATH");
 
-            InputStream serviceAccount;
-
-            if (firebaseConfig != null && !firebaseConfig.isBlank()) {
-                System.out.println("[INFO] Initializing Firebase from FIREBASE_CONFIG (env variable)");
-                serviceAccount = new ByteArrayInputStream(firebaseConfig.getBytes());
-            } else if (firebaseConfigPath != null && !firebaseConfigPath.isBlank()) {
-                System.out.println("[INFO] Initializing Firebase from FIREBASE_CONFIG_PATH: " + firebaseConfigPath);
-                serviceAccount = new FileInputStream(firebaseConfigPath);
-            } else {
-                throw new IllegalStateException("Firebase config not found (neither FIREBASE_CONFIG nor FIREBASE_CONFIG_PATH)");
+            if (firebaseConfigPath == null || firebaseConfigPath.isBlank()) {
+                throw new IllegalStateException("FIREBASE_CONFIG_PATH is missing");
             }
+
+            InputStream serviceAccount = new FileInputStream(firebaseConfigPath);
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
@@ -39,10 +35,9 @@ public class FirebaseConfig {
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
-                System.out.println("[INFO] FirebaseApp bean created and initialized!");
+                System.out.println("[INFO] Firebase initialized from " + firebaseConfigPath);
                 return FirebaseApp.initializeApp(options);
             } else {
-                System.out.println("[INFO] FirebaseApp bean already exists. Returning existing instance.");
                 return FirebaseApp.getInstance();
             }
 
@@ -51,3 +46,4 @@ public class FirebaseConfig {
         }
     }
 }
+

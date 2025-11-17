@@ -37,22 +37,46 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers(
+//                                "/", "/login**", "/oauth2/**",
+//                                "/token", "/api/auth/**",
+//                                "/actuator/**", "/swagger/**", "/swagger-ui/**", "/v3/**"
+//                        ).permitAll()
+//                        .anyRequest().authenticated()
+//                )
+//                .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class) // 필터 등록
+//                .oauth2Login(oauth -> oauth
+//                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+//                        .defaultSuccessUrl("/token", true)
+//                );
+//
+//        return http.build();
+//    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .oauth2Login(AbstractHttpConfigurer::disable)
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/", "/login**", "/oauth2/**",
-                                "/token", "/api/auth/**",
-                                "/actuator/**", "/swagger/**", "/swagger-ui/**", "/v3/**"
+                                "/", "/login**",
+                                "/api/auth/**",
+                                "/v3/**", "/swagger-ui/**",
+                                "/swagger/**",
+                                "/actuator/**",
+                                "/token"
                         ).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class) // 필터 등록
-                .oauth2Login(oauth -> oauth
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .defaultSuccessUrl("/token", true)
+                        .anyRequest().permitAll()  // 개발용: 모든 요청 허용
                 );
 
         return http.build();
