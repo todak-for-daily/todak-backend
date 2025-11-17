@@ -81,38 +81,45 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() {
         try {
-            // 1) env → 2) system property 순으로 체크
-            String firebaseConfig = firstNonBlank(
-                    System.getenv("FIREBASE_CONFIG"),
-                    System.getProperty("FIREBASE_CONFIG")
-            );
+            String firebaseConfigPath = System.getenv("FIREBASE_CONFIG_PATH");
 
-            String firebaseConfigPath = firstNonBlank(
-                    System.getenv("FIREBASE_CONFIG_PATH"),
-                    System.getProperty("FIREBASE_CONFIG_PATH")
-            );
+            if (firebaseConfigPath == null || firebaseConfigPath.isBlank()) {
+                throw new IllegalStateException("FIREBASE_CONFIG_PATH is missing");
 
-            InputStream serviceAccount;
+//             // 1) env → 2) system property 순으로 체크
+//             String firebaseConfig = firstNonBlank(
+//                     System.getenv("FIREBASE_CONFIG"),
+//                     System.getProperty("FIREBASE_CONFIG")
+//             );
 
-            if (firebaseConfig != null && !firebaseConfig.isBlank()) {
-                System.out.println("[INFO] Initializing Firebase from FIREBASE_CONFIG (env/system JSON)");
-                serviceAccount = new ByteArrayInputStream(firebaseConfig.getBytes(StandardCharsets.UTF_8));
+//             String firebaseConfigPath = firstNonBlank(
+//                     System.getenv("FIREBASE_CONFIG_PATH"),
+//                     System.getProperty("FIREBASE_CONFIG_PATH")
+//             );
 
-            } else if (firebaseConfigPath != null && !firebaseConfigPath.isBlank()) {
-                System.out.println("[INFO] Initializing Firebase from FIREBASE_CONFIG_PATH (env/system): " + firebaseConfigPath);
-                serviceAccount = new FileInputStream(firebaseConfigPath);
+//             InputStream serviceAccount;
 
-            } else if (firebaseConfigPathFromYml != null && !firebaseConfigPathFromYml.isBlank()) {
-                String path = firebaseConfigPathFromYml.replace("classpath:", "");
-                System.out.println("[INFO] Initializing Firebase from firebase.config.path (classpath): " + path);
-                Resource resource = new ClassPathResource(path);
-                serviceAccount = resource.getInputStream();
+//             if (firebaseConfig != null && !firebaseConfig.isBlank()) {
+//                 System.out.println("[INFO] Initializing Firebase from FIREBASE_CONFIG (env/system JSON)");
+//                 serviceAccount = new ByteArrayInputStream(firebaseConfig.getBytes(StandardCharsets.UTF_8));
 
-            } else {
-                throw new IllegalStateException(
-                        "Firebase config not found (FIREBASE_CONFIG, FIREBASE_CONFIG_PATH, firebase.config.path 모두 없음)"
-                );
+//             } else if (firebaseConfigPath != null && !firebaseConfigPath.isBlank()) {
+//                 System.out.println("[INFO] Initializing Firebase from FIREBASE_CONFIG_PATH (env/system): " + firebaseConfigPath);
+//                 serviceAccount = new FileInputStream(firebaseConfigPath);
+
+//             } else if (firebaseConfigPathFromYml != null && !firebaseConfigPathFromYml.isBlank()) {
+//                 String path = firebaseConfigPathFromYml.replace("classpath:", "");
+//                 System.out.println("[INFO] Initializing Firebase from firebase.config.path (classpath): " + path);
+//                 Resource resource = new ClassPathResource(path);
+//                 serviceAccount = resource.getInputStream();
+
+//             } else {
+//                 throw new IllegalStateException(
+//                         "Firebase config not found (FIREBASE_CONFIG, FIREBASE_CONFIG_PATH, firebase.config.path 모두 없음)"
+//                 );
             }
+
+            InputStream serviceAccount = new FileInputStream(firebaseConfigPath);
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
@@ -120,10 +127,9 @@ public class FirebaseConfig {
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
-                System.out.println("[INFO] FirebaseApp bean created and initialized!");
+                System.out.println("[INFO] Firebase initialized from " + firebaseConfigPath);
                 return FirebaseApp.initializeApp(options);
             } else {
-                System.out.println("[INFO] FirebaseApp bean already exists. Returning existing instance.");
                 return FirebaseApp.getInstance();
             }
 
@@ -139,3 +145,4 @@ public class FirebaseConfig {
         return null;
     }
 }
+

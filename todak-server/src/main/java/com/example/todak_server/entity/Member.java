@@ -1,11 +1,15 @@
 package com.example.todak_server.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
 public class Member {
 
     @Id
@@ -26,7 +30,14 @@ public class Member {
     @Column(columnDefinition = "TEXT")
     private String avatarUrl;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;  // EMPLOYEE, MANAGER
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private OrganizationUnit organizationUnit;
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
+    private AccessPermission accessPermission;
 
     // Habit 연결
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
@@ -52,71 +63,4 @@ public class Member {
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<GeneralSchedule> generalSchedules = new ArrayList<>();
 
-    public Integer getEmoPeriod() {
-        return emoPeriod;
-    }
-
-    public void setEmoPeriod(Integer emoPeriod) {
-        this.emoPeriod = emoPeriod;
-    }
-
-    public Integer getDayAlarm() {
-        return dayAlarm;
-    }
-
-    public void setDayAlarm(Integer dayAlarm) {
-        this.dayAlarm = dayAlarm;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public String getFcmToken() {
-        return fcmToken;
-    }
-
-    public void setFcmToken(String fcmToken) {
-        this.fcmToken = fcmToken;
-    }
-
-    public String getAvatarUrl() {return avatarUrl;}
-
-    public void setAvatarUrl(String avatarUrl) {this.avatarUrl = avatarUrl;}
 }
