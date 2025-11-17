@@ -22,6 +22,10 @@ services:
       - .env
     ports:
       - "8080:8080"
+    environment:
+      FIREBASE_CONFIG_PATH: /app/firebase/serviceAccountKey.json
+    volumes:
+       - ./firebase/serviceAccountKey.json:/app/firebase/serviceAccountKey.json
 
 volumes:
   db_data:
