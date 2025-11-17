@@ -205,6 +205,7 @@ public class OrganizationUnitService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
 
+        member.setOrganizationUnit(null); // 소속만 제거
         memberRepository.delete(member);
     }
 
