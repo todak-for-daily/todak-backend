@@ -9,5 +9,11 @@ firebase:
 #    path: classpath:firebase/serviceAccountKey.json
   storage:
     bucket: todak-for-daily.firebasestorage.app
+gcp:
+  storage:
+    credentials:
+      location: classpath:gcs/todak-storage-for-images.json
+    project-id: todak-for-daily
+    bucket: todak-images
 env:
   FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
