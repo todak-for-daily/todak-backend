@@ -2,6 +2,7 @@ package com.example.todak_server.service;
 
 import com.example.todak_server.entity.Member;
 import com.example.todak_server.entity.MemberSetting;
+import com.example.todak_server.repository.MemberRepository;
 import com.example.todak_server.repository.MemberSettingRepository;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
@@ -25,6 +26,7 @@ public class FcmService {
 
     private final MemberSettingRepository memberSettingRepository;
     private ThreadPoolTaskScheduler scheduler;
+    private final MemberRepository memberRepository;
 
     @PostConstruct
     public void init() {
@@ -124,6 +126,35 @@ public class FcmService {
             System.out.println("FCM sent to " + member.getNickname() + ": " + response);
         } catch (Exception e) {
             System.err.println("Failed to send push to " + member.getNickname());
+            e.printStackTrace();
+        }
+    }
+
+    // MemberToken 설정
+    public String getMemberToken(Long memberId) {
+        return memberRepository.findById(memberId)
+                .map(Member::getFcmToken)
+                .orElse(null);
+    }
+
+    // 공지/리마인드 전송 로직
+    public void sendNotification(String token, String title, String body) {
+        if (token == null || token.isBlank()) return;
+
+        try {
+            Message message = Message.builder()
+                    .setToken(token)
+                    .setNotification(Notification.builder()
+                            .setTitle(title)
+                            .setBody(body)
+                            .build())
+                    .build();
+
+            String response = FirebaseMessaging.getInstance().send(message);
+            System.out.println("FCM sent: " + response);
+
+        } catch (Exception e) {
+            System.err.println("FCM send failed: " + e.getMessage());
             e.printStackTrace();
         }
     }
