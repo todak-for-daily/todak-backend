@@ -15,20 +15,28 @@ public class AiRequestBuilder {
 
     private final SituationCardService situationCardService;
 
-    public Map<String, Object> build(AiRecommendRequest dto, Map<String,String> situationHabits, String schedule) {
-        Map<String, Object> situation = situationCardService.getSituationById(dto.situationCardId());
+    public Map<String, Object> build(
+            AiRecommendRequest dto,
+            Map<String, String> situationHabits,
+            Map<String, Object> scheduleContext,
+            String currentTime
+    ) {
+        // 상황카드 전체 정보 조회 (id + category + text)
+        Map<String, Object> card = situationCardService.getSituationById(dto.situationCardId());
 
         Map<String, Object> situationCard = Map.of(
-                "id", situation.get("id"),
-                "category", situation.get("category"),
-                "text", situation.get("text")
+                "id", card.get("id"),
+                "category", card.get("category"),
+                "text", card.get("text")
         );
 
         return Map.of(
                 "situation_card", situationCard,
                 "behavior_habits", situationHabits,
-                "current_schedule", schedule
+                "schedule_context", scheduleContext, // prev/current/next 이름들
+                "current_time", currentTime           // ISO 문자열
         );
     }
+
 
 }

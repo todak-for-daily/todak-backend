@@ -15,6 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
+import com.example.todak_server.entity.HabitType;
+import com.example.todak_server.entity.HabitSenseType;
+
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -69,16 +72,13 @@ public class AiBehaviorService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
-        Map<String, String> habitMap = member.getHabits().stream()
-                .collect(Collectors.toMap(
-                        Habit::getSituation,
-                        Habit::getContent,
-                        (oldValue, newValue) -> newValue // 같은 key면 마지막 값으로 덮어쓰기
-                ));
+        Map<String, String> habitMap = buildBehaviorHabits(member.getHabits()); // 너가 앞으로 만든 버전
 
-        String currentSchedule = findCurrentSchedule(member);
+        Map<String, Object> scheduleContext = buildScheduleContext(member);
+        String currentTime = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Seoul")).toString();
 
-        Map<String, Object> payload = aiRequestBuilder.build(dto, habitMap, currentSchedule);
+        Map<String, Object> payload = aiRequestBuilder.build(dto, habitMap, scheduleContext, currentTime);
+
 
         List<AiRecommendItem> actions;
         try {
@@ -93,6 +93,116 @@ public class AiBehaviorService {
 
         return new AiRecommendResponse(safeActions);
     }
+
+    private Map<String, String> buildBehaviorHabits(List<Habit> habits) {
+        Map<String, List<String>> senseBucket = new java.util.HashMap<>();
+        Map<String, String> result = new java.util.LinkedHashMap<>();
+
+        for (Habit habit : habits) {
+            if (habit.getType() == null) continue;
+
+            // 공통 설명 텍스트 만들기
+            StringBuilder sb = new StringBuilder();
+            if (habit.getDescription() != null && !habit.getDescription().isBlank()) {
+                sb.append(habit.getDescription());
+            }
+            if (habit.getSoothingAction() != null && !habit.getSoothingAction().isBlank()) {
+                if (!sb.isEmpty()) sb.append(" / ");
+                sb.append("힘들 때: ").append(habit.getSoothingAction());
+            }
+            String value = sb.isEmpty() ? null : sb.toString();
+            if (value == null) continue;
+
+            // 감각(SENSE
+            if (habit.getType() == HabitType.SENSE && habit.getSenseType() != null) {
+                String senseKey = "감각-" + toKoreanSenseName(habit.getSenseType()); // 감각-촉각 같은 것
+                senseBucket.computeIfAbsent(senseKey, k -> new java.util.ArrayList<>())
+                        .add(value);
+            }
+
+            // 인지(COGNITION)
+            else if (habit.getType() == HabitType.COGNITION) {
+                if (habit.getTime() != null && !habit.getTime().isBlank()) {
+                    result.put("시간", habit.getTime());
+                }
+                if (habit.getPlace() != null && !habit.getPlace().isBlank()) {
+                    result.put("장소", habit.getPlace());
+                }
+                if (habit.getTarget() != null && !habit.getTarget().isBlank()) {
+                    result.put("대상", habit.getTarget());
+                }
+                // 인지 설명 + 안정행동
+                result.put("인지-설명", value);
+            }
+        }
+
+        // 감각 버킷 합치기: 각 감각별로 한 줄 string으로 합침
+        for (Map.Entry<String, List<String>> entry : senseBucket.entrySet()) {
+            String key = entry.getKey();
+            List<String> values = entry.getValue();
+            // "1) ... / 2) ..." 이런 식으로 합치기
+            String joined = "";
+            for (int i = 0; i < values.size(); i++) {
+                joined += (i + 1) + ") " + values.get(i);
+                if (i < values.size() - 1) joined += " / ";
+            }
+            result.put(key, joined);
+        }
+
+        return result;
+    }
+
+
+    private String toKoreanSenseName(HabitSenseType senseType) {
+        return switch (senseType) {
+            case VISUAL      -> "시각";
+            case AUDITORY    -> "청각";
+            case TASTE       -> "미각";
+            case SMELL       -> "후각";
+            case TOUCH       -> "촉각";
+            case KINESTHETIC -> "운동감각";
+        };
+    }
+
+    private Map<String, Object> buildScheduleContext(Member member) {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        List<GeneralSchedule> schedules = member.getGeneralSchedules().stream()
+                .filter(s -> s.getDate() != null && s.getDate().equals(today))
+                .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime()))
+                .toList();
+
+        GeneralSchedule prev = null;
+        GeneralSchedule current = null;
+        GeneralSchedule next = null;
+
+        for (int i = 0; i < schedules.size(); i++) {
+            GeneralSchedule s = schedules.get(i);
+            if (s.getStartTime() != null && s.getEndTime() != null &&
+                    (now.isAfter(s.getStartTime()) || now.equals(s.getStartTime())) &&
+                    now.isBefore(s.getEndTime())) {
+                current = s;
+                if (i > 0) prev = schedules.get(i - 1);
+                if (i < schedules.size() - 1) next = schedules.get(i + 1);
+                break;
+            }
+        }
+
+        String prevName    = prev    != null ? prev.getTitle() : null;
+        String currentName = current != null ? current.getTitle() : null;
+        String nextName    = next    != null ? next.getTitle() : null;
+
+        Map<String, Object> ctx = new java.util.HashMap<>();
+        ctx.put("prev_name", prevName);
+        ctx.put("current_name", currentName);
+        ctx.put("next_name", nextName);
+
+        return ctx;
+    }
+
+
+
 
     List<AiRecommendItem> sanitizeAndFallback(List<AiRecommendItem> raw) {
 
