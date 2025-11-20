@@ -16,11 +16,12 @@ public class AiRequestBuilder {
     private final SituationCardService situationCardService;
 
     public Map<String, Object> build(AiRecommendRequest dto, Map<String,String> situationHabits, String schedule) {
-        String situationText = situationCardService.getSituationText(dto.situationCardId());
+        Map<String, Object> situation = situationCardService.getSituationById(dto.situationCardId());
 
         Map<String, Object> situationCard = Map.of(
-                "id", dto.situationCardId(),
-                "text", situationText
+                "id", situation.get("id"),
+                "category", situation.get("category"),
+                "text", situation.get("text")
         );
 
         return Map.of(
@@ -29,4 +30,5 @@ public class AiRequestBuilder {
                 "current_schedule", schedule
         );
     }
+
 }
