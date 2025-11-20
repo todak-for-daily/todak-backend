@@ -20,43 +20,50 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/habits")
 public class HabitController {
+
     private final HabitService habitService;
 
-
-    @Operation(summary = "습관 생성", description = "사용자의 새로운 습관 등록")
+    @Operation(summary = "행동 특성 생성", description = "사용자의 행동 특성 등록 (감각/인지 구조)")
     @PostMapping
-    public ResponseEntity<HabitResponse> createHabit(@AuthenticationPrincipal(expression = "id") Long memberId, @RequestBody HabitRequest habitRequest) {
-        Habit habit = habitService.createHabit(memberId, habitRequest.situation(), habitRequest.content());
-        System.out.println(memberId);
+    public ResponseEntity<HabitResponse> createHabit(
+            @AuthenticationPrincipal(expression = "id") Long memberId,
+            @RequestBody HabitRequest habitRequest
+    ) {
+        Habit habit = habitService.createHabit(memberId, habitRequest);
         return ResponseEntity.ok(HabitResponse.from(habit));
     }
 
-    @Operation(summary = "전체 습관 조회", description = "특정 사용자의 모든 습관 리스트 조회")
+    @Operation(summary = "전체 행동 특성 조회", description = "특정 사용자의 모든 행동 특성 리스트 조회")
     @GetMapping
-    public ResponseEntity<List<HabitResponse>> getAllHabits( @AuthenticationPrincipal(expression = "id") Long memberId) {
+    public ResponseEntity<List<HabitResponse>> getAllHabits(
+            @AuthenticationPrincipal(expression = "id") Long memberId
+    ) {
         List<HabitResponse> habits = habitService.getHabits(memberId)
                 .stream()
                 .map(HabitResponse::from)
                 .toList();
+
         return ResponseEntity.ok(habits);
     }
 
-    @Operation(summary = "습관 수정", description = "situation과 content 모두 전달해야 합니다.")
+    @Operation(summary = "행동 특성 수정", description = "전체 필드(type, senseType 등) 모두 전달해야 합니다.")
     @PutMapping("/{habitId}")
     public ResponseEntity<HabitResponse> updateHabit(
             @AuthenticationPrincipal(expression = "id") Long memberId,
             @PathVariable Long habitId,
-            @RequestBody HabitRequest request
+            @RequestBody HabitRequest habitRequest
     ) {
-        Habit updated = habitService.updateHabit(memberId, habitId, request.situation(), request.content());
+        Habit updated = habitService.updateHabit(memberId, habitId, habitRequest);
         return ResponseEntity.ok(HabitResponse.from(updated));
     }
 
-    @Operation(summary = "습관 삭제", description = "선택한 습관을 삭제")
+    @Operation(summary = "행동 특성 삭제", description = "선택한 행동 특성을 삭제")
     @DeleteMapping("/{habitId}")
-    public ResponseEntity<Void> deleteHabit( @AuthenticationPrincipal(expression = "id") Long memberId,@PathVariable Long habitId) {
-        habitService.deleteHabit(memberId,habitId);
+    public ResponseEntity<Void> deleteHabit(
+            @AuthenticationPrincipal(expression = "id") Long memberId,
+            @PathVariable Long habitId
+    ) {
+        habitService.deleteHabit(memberId, habitId);
         return ResponseEntity.noContent().build();
     }
-
 }

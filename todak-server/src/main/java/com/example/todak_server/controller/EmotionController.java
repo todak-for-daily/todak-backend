@@ -23,7 +23,7 @@ public class EmotionController {
     private final EmotionCardService emotionCardService;
     private final AiSessionContextService aiSessionContextService;
 
-    @Operation(summary = "전체 감정 카드 반환", description = "[{\"id\":\"E001\",\"text\":\"괜찮아요\"},{\"id\":\"E002\",\"text\":\"조금 힘들지만 괜찮아요\"...")
+    @Operation(summary = "전체 감정 카드 반환", description = "[{\"id\":\"E001\",\"text\":\"괜찮아요\"},{\"id\":\"E002\",\"text\":\"힘들어요\"...")
     @GetMapping("/cards")
     public ResponseEntity<List<EmotionCardResponse>> getEmotionCards() {
         return ResponseEntity.ok(emotionCardService.getEmotionCards());
@@ -35,7 +35,7 @@ public class EmotionController {
 
         int level = emotionCardService.getLevel(dto.emotionCard());
 
-        if (level >= 4) { // 괜찮아요, 조금 힘들지만 괜찮아요.
+        if (level == 4) { // 괜찮아요만.
             return ResponseEntity.ok(
                     new EmotionSelectResponse("end", "오늘은 괜찮아요 😊 추천이 필요 없어요.")
             );

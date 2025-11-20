@@ -71,6 +71,11 @@
     "text": "깜짝 놀랐어요"
   },
   {
+    "id": "ENV-15",
+    "category": "ENV",
+    "text": "모르겠어요"
+  },
+  {
     "id": "BODY-01",
     "category": "BODY",
     "text": "더워요"
@@ -161,6 +166,13 @@
     "text": "따가워요"
   },
   {
+
+    "id": "BODY-19",
+    "category": "BODY",
+    "text": "모르겠어요"
+
+  },
+  {
     "id": "ACT-01",
     "category": "ACT",
     "text": "숙제가 많아요"
@@ -211,6 +223,13 @@
     "text": "무엇을 먼저 해야 할지 모르겠어요"
   },
   {
+
+    "id": "ACT-11",
+    "category": "ACT",
+    "text": "모르겠어요"
+
+  },
+  {
     "id": "COMM-01",
     "category": "COMM",
     "text": "이해가 안 돼요"
@@ -249,6 +268,13 @@
     "id": "COMM-08",
     "category": "COMM",
     "text": "내 말 안 들어줘요"
+  },
+  {
+
+    "id": "COMM-09",
+    "category": "COMM",
+    "text": "모르겠어요"
+
   },
   {
     "id": "MIND-01",
@@ -304,6 +330,13 @@
     "id": "MIND-11",
     "category": "MIND",
     "text": "실수할까 무서워요"
+  },
+  {
+
+    "id": "MIND-12",
+    "category": "MIND",
+    "text": "모르겠어요"
+
   },
   {
     "id": "MISC-01",
