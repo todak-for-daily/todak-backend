@@ -3,11 +3,13 @@ package com.example.todak_server.ai.behavior.controller;
 import com.example.todak_server.ai.behavior.dto.request.AiFeedbackRequest;
 import com.example.todak_server.ai.behavior.dto.request.AiRecommendRequest;
 import com.example.todak_server.ai.behavior.dto.response.AiActionDetailResponse;
+import com.example.todak_server.ai.behavior.dto.response.AiFeedbackFlowResponse;
 import com.example.todak_server.ai.behavior.dto.response.AiRecommendResponse;
 import com.example.todak_server.ai.behavior.service.AiBehaviorService;
 import com.example.todak_server.ai.behavior.service.AiFeedbackService;
 import com.example.todak_server.ai.behavior.service.AiSessionContextService;
 import com.example.todak_server.dto.request.AiActionDetailRequest;
+import com.example.todak_server.entity.FeedbackNextStep;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -51,12 +53,15 @@ public class AiBehaviorController {
     }
 
 
-    // after 피드백 받은 후 점수 결과+보낸 데이터를 db에 저장.
     @Operation(summary = "피드백 저장", description = "행동 후 사용자의 감정(afterEmotion) 받아 점수화 후 결과들을 DB에 저장")
     @PostMapping("/feedback")
-    public ResponseEntity<Void> saveFeedback(@AuthenticationPrincipal(expression = "id") Long memberId,@RequestBody AiFeedbackRequest dto) {
-        aiFeedbackService.saveFeedback(memberId, dto.afterEmotion());
-        return ResponseEntity.ok().build(); // 단순 성공 응답
+    public ResponseEntity<AiFeedbackFlowResponse> saveFeedback(
+            @AuthenticationPrincipal(expression = "id") Long memberId,
+            @RequestBody AiFeedbackRequest dto
+    ) {
+        FeedbackNextStep nextStep = aiFeedbackService.handleFeedback(memberId, dto.afterEmotion());
+        return ResponseEntity.ok(new AiFeedbackFlowResponse(nextStep));
     }
+
 
 }
