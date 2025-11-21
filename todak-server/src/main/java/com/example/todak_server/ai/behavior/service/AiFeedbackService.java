@@ -1,6 +1,7 @@
 package com.example.todak_server.ai.behavior.service;
 
 import com.example.todak_server.entity.AiFeedbackRecord;
+import com.example.todak_server.entity.FeedbackNextStep;
 import com.example.todak_server.repository.AiFeedbackRepository;
 import com.example.todak_server.ai.behavior.service.AiSessionContextService;
 import com.example.todak_server.service.EmotionCardService;
@@ -15,7 +16,7 @@ public class AiFeedbackService {
     private final AiSessionContextService aiSessionContextService;
     private final EmotionCardService emotionCardService;
 
-    public void saveFeedback(Long memberId, String afterEmotion) {
+    public FeedbackNextStep handleFeedback(Long memberId, String afterEmotion) {
         var context = aiSessionContextService.findByMemberId(memberId)
                 .orElseThrow(() -> new IllegalStateException("AI 세션 정보가 없습니다."));
 
@@ -35,7 +36,13 @@ public class AiFeedbackService {
 
         aiFeedbackRepository.save(record);
 
-        // 피드백 저장 후 세션 정리
-        aiSessionContextService.deleteByMemberId(memberId);
+        if (after > before) {
+            // 좋아졌으면 세션 정리 + 완료 플로우
+            aiSessionContextService.deleteByMemberId(memberId);
+            return FeedbackNextStep.COMPLETE;
+        } else {
+            // 같거나 나빠졌으면 세션 유지 + 행동 재추천 플로우
+            return FeedbackNextStep.RETRY_ACTION;
+        }
     }
 }
