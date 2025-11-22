@@ -26,10 +26,11 @@ public class WorkScheduleService {
 
     // 스케줄 등록
     public WorkScheduleDetailResponse create(
+            Long memberId,
             WorkScheduleCreateRequest req,
             MultipartFile imageFile
     ) {
-        Member member = memberRepository.findById(req.memberId())
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("직원이 존재하지 않습니다."));
 
         String imgUrl = null;
@@ -52,6 +53,7 @@ public class WorkScheduleService {
 
     // 스케줄 수정
     public WorkScheduleDetailResponse update(
+            Long memberId,
             Long scheduleId,
             WorkScheduleUpdateRequest req,
             MultipartFile imageFile
@@ -113,7 +115,7 @@ public class WorkScheduleService {
     }
 
     // 스케줄 삭제
-    public void delete(Long scheduleId) {
+    public void delete(Long memberId, Long scheduleId) {
 
         WorkSchedule schedule = workScheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new RuntimeException("스케줄을 찾을 수 없습니다."));
