@@ -33,6 +33,7 @@ public class HabitService {
         habit.setTarget(request.target());
         habit.setDescription(request.description());
         habit.setSoothingAction(request.soothingAction());
+        habit.setTrigger(request.trigger());
 
         return habitRepository.save(habit);
     }
@@ -56,6 +57,7 @@ public class HabitService {
         habit.setTarget(request.target());
         habit.setDescription(request.description());
         habit.setSoothingAction(request.soothingAction());
+        habit.setTrigger(request.trigger());
 
         return habitRepository.save(habit);
     }

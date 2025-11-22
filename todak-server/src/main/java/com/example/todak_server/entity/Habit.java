@@ -21,10 +21,11 @@ public class Habit {
     @Column(nullable = false)
     private HabitType type;
 
-    @Column(nullable = false, length = 500)
     private String description;
 
-    @Column(length = 500)
+    @Column(name = "`trigger`")
+    private String trigger;
+
     private String soothingAction; // 힘들 때 도움이 되는 행동 (선택)
 
     // 감각 (SENSE) 일 때
@@ -82,6 +83,14 @@ public class Habit {
 
     public void setSoothingAction(String soothingAction) {
         this.soothingAction = soothingAction;
+    }
+
+    public String getTrigger() {
+        return trigger;
+    }
+
+    public void setTrigger(String trigger) {
+        this.trigger = trigger;
     }
 
     public HabitSenseType getSenseType() {
