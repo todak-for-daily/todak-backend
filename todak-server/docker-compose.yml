@@ -8,16 +8,21 @@ services:
     env_file:
       - .env
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 5s
+      retries: 10
 
   app:
-    image: ghcr.io/xxubin04/todak-for-daily/todak-backend:latest
+    build: .
     container_name: todak-server
     restart: always
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     env_file:
       - .env
     ports:
@@ -25,7 +30,7 @@ services:
     environment:
       FIREBASE_CONFIG_PATH: /app/firebase/serviceAccountKey.json
     volumes:
-       - ./firebase/serviceAccountKey.json:/app/firebase/serviceAccountKey.json
+       - ./firebase:/app/firebase
 
 volumes:
   db_data:

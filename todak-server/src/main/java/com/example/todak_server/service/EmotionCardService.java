@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,18 +24,20 @@ public class EmotionCardService {
     @PostConstruct
     public void loadEmotionCards() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        File file = new ClassPathResource("data/emotion_cards.json").getFile();
+        ClassPathResource resource = new ClassPathResource("data/emotion_cards.json");
 
-        List<Map<String, Object>> list = mapper.readValue(file, new TypeReference<>() {});
-        for (Map<String, Object> item : list) {
-            String id = (String) item.get("id");
-            String text = (String) item.get("text");
-            Integer level = (Integer) item.get("level");
-            emotionCards.add(new EmotionCardResponse(id,text));
-            emotionLevelMap.put(text, level);
+        try (InputStream is = resource.getInputStream()) {
+            List<Map<String, Object>> list = mapper.readValue(is, new TypeReference<>() {});
+
+            for (Map<String, Object> item : list) {
+                String id = (String) item.get("id");
+                String text = (String) item.get("text");
+                Integer level = (Integer) item.get("level");
+
+                emotionCards.add(new EmotionCardResponse(id, text));
+                emotionLevelMap.put(text, level);
+            }
         }
-
-        //System.out.println(" Emotion cards loaded: " + emotionLevelMap);
     }
 
 
