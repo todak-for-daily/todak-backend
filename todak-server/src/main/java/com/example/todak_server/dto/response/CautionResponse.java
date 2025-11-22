@@ -1,9 +1,12 @@
 package com.example.todak_server.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
+
 import java.time.LocalDateTime;
 
 @Schema(description = "주의사항 조회 응답 DTO")
+@Builder
 public record CautionResponse(
 
         @Schema(description = "주의사항 ID", example = "7")
