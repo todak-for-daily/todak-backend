@@ -2,8 +2,7 @@ package com.example.todak_server.ai.behavior.service;
 
 import com.example.todak_server.entity.AiFeedbackRecord;
 import com.example.todak_server.entity.FeedbackNextStep;
-import com.example.todak_server.repository.AiFeedbackRepository;
-import com.example.todak_server.ai.behavior.service.AiSessionContextService;
+import com.example.todak_server.repository.AiFeedbackRecordRepository;
 import com.example.todak_server.service.EmotionCardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AiFeedbackService {
 
-    private final AiFeedbackRepository aiFeedbackRepository;
+    private final AiFeedbackRecordRepository aiFeedbackRepository;
     private final AiSessionContextService aiSessionContextService;
     private final EmotionCardService emotionCardService;
 

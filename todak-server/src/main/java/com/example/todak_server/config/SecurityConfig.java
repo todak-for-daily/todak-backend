@@ -60,6 +60,7 @@ public class SecurityConfig {
                                 "/swagger/**", "/actuator/**"
                         ).permitAll()
                         .anyRequest().authenticated()
+//                        .anyRequest().permitAll()
                 );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
