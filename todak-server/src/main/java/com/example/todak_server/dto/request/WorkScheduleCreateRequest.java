@@ -7,9 +7,6 @@ import java.time.LocalTime;
 @Schema(description = "근무 스케줄 생성 요청 DTO")
 public record WorkScheduleCreateRequest(
 
-        @Schema(description = "근무 대상 직원 ID", example = "3")
-        Long memberId,
-
         @Schema(description = "근무 날짜", example = "2025-11-21")
         LocalDate date,
 
