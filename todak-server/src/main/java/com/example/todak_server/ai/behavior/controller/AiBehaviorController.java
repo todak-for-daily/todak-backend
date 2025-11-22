@@ -49,7 +49,7 @@ public class AiBehaviorController {
     @PostMapping("/action-detail")
     public ResponseEntity<AiActionDetailResponse> actionDetail(@AuthenticationPrincipal(expression = "id") Long memberId, @RequestBody AiActionDetailRequest dto) {
         aiSessionContextService.saveOrUpdate(memberId, null, null, dto.selectedAction());
-        return ResponseEntity.ok(aiBehaviorService.getActionDetail(dto));
+        return ResponseEntity.ok(aiBehaviorService.getActionDetail(memberId,dto));
     }
 
 
