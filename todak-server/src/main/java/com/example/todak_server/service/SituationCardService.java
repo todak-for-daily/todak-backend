@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +21,12 @@ public class SituationCardService {
     @PostConstruct
     public void loadSituationCards() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        File file = new ClassPathResource("data/situation_cards.json").getFile();
+        ClassPathResource resource = new ClassPathResource("data/situation_cards.json");
 
-        List<Map<String, Object>> list = mapper.readValue(file, new TypeReference<>() {});
-        situationCards.addAll(list);
+        try (InputStream is = resource.getInputStream()) {
+            List<Map<String, Object>> list = mapper.readValue(is, new TypeReference<>() {});
+            situationCards.addAll(list);
+        }
 
         //System.out.println(" Situation cards loaded: " + situationCards.size() + " items");
     }

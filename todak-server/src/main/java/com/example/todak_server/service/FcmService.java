@@ -12,7 +12,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -25,31 +24,42 @@ import java.util.List;
 public class FcmService {
 
     private final MemberSettingRepository memberSettingRepository;
-    private ThreadPoolTaskScheduler scheduler;
     private final MemberRepository memberRepository;
 
-    @PostConstruct
-    public void init() {
-        scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setPoolSize(10);
-        scheduler.setThreadNamePrefix("fcm-push-");
-        scheduler.initialize();
+    private ThreadPoolTaskScheduler scheduler;
 
-        List<MemberSetting> settings = memberSettingRepository.findAll();
-        for (MemberSetting setting : settings) {
-            try {
-                scheduleEmotionPush(setting);
-            } catch (Exception e) {
-                // 어떤 사용자에서 실패했는지 식별 가능하게
-                String who = (setting.getMember() != null) ? setting.getMember().getNickname() : "unknown";
-                System.err.println("[FCM] schedule failed for member=" + who + " : " + e.getMessage());
-                e.printStackTrace();
-            }
+    private void initScheduler() {
+        if (scheduler == null) {
+            scheduler = new ThreadPoolTaskScheduler();
+            scheduler.setPoolSize(10);
+            scheduler.setThreadNamePrefix("fcm-push-");
+            scheduler.initialize();
+        }
+    }
+
+    public void registerUserSchedule(Long memberId) {
+        initScheduler();
+
+        MemberSetting setting = memberSettingRepository.findByMemberId(memberId)
+                .orElse(null);
+
+        if (setting == null) {
+            System.out.println("[FCM] No setting found for memberId=" + memberId);
+            return;
+        }
+
+        try {
+            scheduleEmotionPush(setting);
+        } catch (Exception e) {
+            System.err.println("[FCM] schedule failed for memberId=" + memberId + " : " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     // 사용자별 푸시 스케줄 등록
     public void scheduleEmotionPush(MemberSetting setting) {
+        initScheduler();
+
         if (setting == null || setting.getMember() == null) return;
 
         Member member = setting.getMember();
@@ -71,7 +81,7 @@ public class FcmService {
             return;
         }
 
-        // 3) 첫 실행 시각 계산 (내일로 넘어갈 필요 있으면 +1day)
+        // 3) 첫 실행 시각 계산
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime firstRun = now.withHour(start.getHour())
                 .withMinute(start.getMinute())
@@ -85,7 +95,6 @@ public class FcmService {
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 LocalTime nowTime = LocalTime.now();
-                // 활성 구간 내에서만 발송
                 if (!isWithin(nowTime, start, end)) return;
                 sendEmotionPush(member);
             } catch (Exception e) {
@@ -98,18 +107,17 @@ public class FcmService {
                 " every " + intervalMinutes + " min (" + start + " ~ " + end + ")");
     }
 
-    // start <= now <= end (하루 경계 교차도 처리)
+    // 시간 구간 체크
     private boolean isWithin(LocalTime now, LocalTime start, LocalTime end) {
-        if (start.equals(end)) return true; // 24시간 허용으로 해석
+        if (start.equals(end)) return true;
         if (start.isBefore(end)) {
             return !now.isBefore(start) && !now.isAfter(end);
         } else {
-            // 예: 22:00 ~ 06:00 같은 구간
             return !now.isBefore(start) || !now.isAfter(end);
         }
     }
 
-    // FCM 전송 로직
+    // 푸시 전송 로직
     public void sendEmotionPush(Member member) {
         try {
             Notification notification = Notification.builder()
@@ -124,20 +132,19 @@ public class FcmService {
 
             String response = FirebaseMessaging.getInstance().send(message);
             System.out.println("FCM sent to " + member.getNickname() + ": " + response);
+
         } catch (Exception e) {
             System.err.println("Failed to send push to " + member.getNickname());
             e.printStackTrace();
         }
     }
 
-    // MemberToken 설정
     public String getMemberToken(Long memberId) {
         return memberRepository.findById(memberId)
                 .map(Member::getFcmToken)
                 .orElse(null);
     }
 
-    // 공지/리마인드 전송 로직
     public void sendNotification(String token, String title, String body) {
         if (token == null || token.isBlank()) return;
 
@@ -159,4 +166,3 @@ public class FcmService {
         }
     }
 }
-
