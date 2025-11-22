@@ -24,10 +24,13 @@ public record HabitResponse(
         @Schema(description = "누구와 있을 때 나타나나요? (COGNITION일 때)", example = "여러 사람이 있을 때")
         String target,
 
-        @Schema(description = "특성 설명", example = "미지근한 물로 세수하는 것을 좋아해요.")
+        @Schema(description = "어떤 상황일 떄 나타나나요?")
+        String trigger,
+
+        @Schema(description = "이 상황에서 어떻게 행동하나요?", example = "미지근한 물로 세수하는 것을 좋아해요.")
         String description,
 
-        @Schema(description = "힘들 때 스스로 안정되는 방법", example = "조용한 곳으로 자리를 옮기면 진정돼요.")
+        @Schema(description = "이 특성으로 인해 불안을 느낀다면, 무엇을 하면 괜찮아지나요?", example = "조용한 곳으로 자리를 옮기면 진정돼요.")
         String soothingAction
 ) {
     public static HabitResponse from(Habit habit) {
@@ -39,7 +42,8 @@ public record HabitResponse(
                 habit.getPlace(),
                 habit.getTarget(),
                 habit.getDescription(),
-                habit.getSoothingAction()
+                habit.getSoothingAction(),
+                habit.getTrigger()
         );
     }
 

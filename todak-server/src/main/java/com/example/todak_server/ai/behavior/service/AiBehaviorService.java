@@ -103,17 +103,28 @@ public class AiBehaviorService {
 
             // 공통 설명 텍스트 만들기
             StringBuilder sb = new StringBuilder();
-            if (habit.getDescription() != null && !habit.getDescription().isBlank()) {
-                sb.append(habit.getDescription());
+
+            // 1) 트리거 먼저
+            if (habit.getTrigger() != null && !habit.getTrigger().isBlank()) {
+                sb.append("나타나는 상황: ").append(habit.getTrigger());
             }
+
+            // 2) 특성 설명
+            if (habit.getDescription() != null && !habit.getDescription().isBlank()) {
+                if (!sb.isEmpty()) sb.append(" / ");
+                sb.append("행동: ").append(habit.getDescription());
+            }
+
+            // 3) 안정 행동
             if (habit.getSoothingAction() != null && !habit.getSoothingAction().isBlank()) {
                 if (!sb.isEmpty()) sb.append(" / ");
                 sb.append("힘들 때: ").append(habit.getSoothingAction());
             }
+
             String value = sb.isEmpty() ? null : sb.toString();
             if (value == null) continue;
 
-            // 감각(SENSE
+            // 감각(SENSE)
             if (habit.getType() == HabitType.SENSE && habit.getSenseType() != null) {
                 String senseKey = "감각-" + toKoreanSenseName(habit.getSenseType()); // 감각-촉각 같은 것
                 senseBucket.computeIfAbsent(senseKey, k -> new java.util.ArrayList<>())
@@ -131,7 +142,7 @@ public class AiBehaviorService {
                 if (habit.getTarget() != null && !habit.getTarget().isBlank()) {
                     result.put("대상", habit.getTarget());
                 }
-                // 인지 설명 + 안정행동
+                // 인지 설명 + 트리거 + 안정행동이 합쳐진 value
                 result.put("인지-설명", value);
             }
         }
@@ -140,17 +151,18 @@ public class AiBehaviorService {
         for (Map.Entry<String, List<String>> entry : senseBucket.entrySet()) {
             String key = entry.getKey();
             List<String> values = entry.getValue();
-            // "1) ... / 2) ..." 이런 식으로 합치기
-            String joined = "";
+
+            StringBuilder joined = new StringBuilder();
             for (int i = 0; i < values.size(); i++) {
-                joined += (i + 1) + ") " + values.get(i);
-                if (i < values.size() - 1) joined += " / ";
+                if (i > 0) joined.append(" / ");
+                joined.append(i + 1).append(") ").append(values.get(i));
             }
-            result.put(key, joined);
+            result.put(key, joined.toString());
         }
 
         return result;
     }
+
 
 
     private String toKoreanSenseName(HabitSenseType senseType) {
