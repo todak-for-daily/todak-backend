@@ -7,11 +7,9 @@ import com.example.todak_server.dto.request.OrganizationUnitUpdateRequest;
 import com.example.todak_server.dto.response.EmployeeDetailResponse;
 import com.example.todak_server.dto.response.EmployeeResponse;
 import com.example.todak_server.dto.response.OrganizationUnitResponse;
-import com.example.todak_server.entity.AccessPermission;
-import com.example.todak_server.entity.Member;
-import com.example.todak_server.entity.OrganizationUnit;
-import com.example.todak_server.entity.Role;
+import com.example.todak_server.entity.*;
 import com.example.todak_server.repository.AccessPermissionRepository;
+import com.example.todak_server.repository.CompanyRepository;
 import com.example.todak_server.repository.MemberRepository;
 import com.example.todak_server.repository.OrganizationUnitRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +25,13 @@ public class OrganizationUnitService {
     private final OrganizationUnitRepository organizationUnitRepository;
     private final MemberRepository memberRepository;
     private final AccessPermissionRepository accessPermissionRepository;
+    private final CompanyRepository companyRepository;
 
+    // 기업별 트리 전체 조회
+    public List<OrganizationUnitResponse> getOrganizationTree(Long companyId) {
 
-    // 조직 트리 전체 조회
-    public List<OrganizationUnitResponse> getOrganizationTree() {
-        List<OrganizationUnit> roots = organizationUnitRepository.findByParentIsNull();
+        List<OrganizationUnit> roots = organizationUnitRepository
+                .findByCompanyIdAndParentIsNull(companyId);
 
         return roots.stream()
                 .map(this::convertToResponse)
@@ -55,6 +55,9 @@ public class OrganizationUnitService {
     @Transactional
     public Long createOrganizationUnit(OrganizationUnitCreateRequest request) {
 
+        Company company = companyRepository.findById(request.companyId())
+                .orElseThrow(() -> new IllegalArgumentException("Company not found"));
+
         OrganizationUnit parent = null;
 
         if (request.parentId() != null) {
@@ -65,6 +68,7 @@ public class OrganizationUnitService {
         OrganizationUnit unit = new OrganizationUnit();
         unit.setName(request.name());
         unit.setParent(parent);
+        unit.setCompany(company);
 
         OrganizationUnit saved = organizationUnitRepository.save(unit);
         return saved.getId();
@@ -77,14 +81,22 @@ public class OrganizationUnitService {
         OrganizationUnit unit = organizationUnitRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
 
+        // 이름 변경
         if (request.name() != null) {
             unit.setName(request.name());
         }
 
+        // 소속 회사 변경
+        if (request.companyId() != null) {
+            Company company = companyRepository.findById(request.companyId())
+                    .orElseThrow(() -> new IllegalArgumentException("Company not found"));
+            unit.setCompany(company);
+        }
+
+        // 상위 조직 변경
         if (request.parentId() != null) {
             OrganizationUnit parent = organizationUnitRepository.findById(request.parentId())
                     .orElseThrow(() -> new IllegalArgumentException("Parent not found"));
-
             unit.setParent(parent);
         }
     }
@@ -107,12 +119,9 @@ public class OrganizationUnitService {
         // 2) 조직 이름으로 조직 찾기
         OrganizationUnit org = organizationUnitRepository
                 .findById(request.organizationUnitId())
-                .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + request.organizationUnitId()));
+                .orElseThrow(() -> new IllegalArgumentException("조직을 찾을 수 없습니다."));
 
-        // 3) 멤버의 조직 업데이트
         employee.setOrganizationUnit(org);
-
-        // 저장 후 멤버 id 반환
         memberRepository.save(employee);
 
         return employee.getId();
@@ -144,7 +153,7 @@ public class OrganizationUnitService {
     // 직원 상세 조회
     public EmployeeDetailResponse getEmployeeDetail(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+                .orElseThrow(() -> new IllegalArgumentException("직원을 찾을 수 없습니다."));
 
         return new EmployeeDetailResponse(
                 member.getId(),
@@ -163,7 +172,7 @@ public class OrganizationUnitService {
     public void updateEmployeePermission(Long memberId, AccessPermissionUpdateRequest request) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+                .orElseThrow(() -> new IllegalArgumentException("직원을 찾을 수 없습니다."));
 
         AccessPermission permission = member.getAccessPermission();
 
@@ -185,15 +194,15 @@ public class OrganizationUnitService {
     @Transactional
     public void deleteOrganization(Long id) {
         OrganizationUnit unit = organizationUnitRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
+                .orElseThrow(() -> new IllegalArgumentException("조직을 찾을 수 없습니다."));
 
         if (!unit.getChildren().isEmpty()) {
-            throw new IllegalStateException("Cannot delete organization that has sub-organizations");
+            throw new IllegalStateException("하위 조직을 가진 조직을 삭제할 수 없습니다.");
         }
 
         // 직원도 남아있으면 삭제 불가
         if (memberRepository.existsByOrganizationUnit(unit)) {
-            throw new IllegalStateException("Cannot delete organization that has employees");
+            throw new IllegalStateException("직원들이 저장된 조직을 삭제할 수 없습니다.");
         }
 
         organizationUnitRepository.delete(unit);
@@ -203,7 +212,7 @@ public class OrganizationUnitService {
     @Transactional
     public void deleteEmployee(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+                .orElseThrow(() -> new IllegalArgumentException("직원을 찾을 수 없습니다."));
 
         member.setOrganizationUnit(null); // 소속만 제거
         memberRepository.delete(member);

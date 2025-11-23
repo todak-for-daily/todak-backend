@@ -11,4 +11,6 @@ public interface OrganizationUnitRepository extends JpaRepository<OrganizationUn
     // 부모가 없는 최상위 조직만 조회
     List<OrganizationUnit> findByParentIsNull();
     Optional<OrganizationUnit> findByName(String name);
+    List<OrganizationUnit> findByCompanyIdAndParentIsNull(Long companyId);
+
 }
