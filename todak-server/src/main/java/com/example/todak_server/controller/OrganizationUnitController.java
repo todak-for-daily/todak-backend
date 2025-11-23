@@ -26,9 +26,11 @@ public class OrganizationUnitController {
 
     // 조직 조회
     @Operation(summary = "조직 트리 조회", description = "최상위 조직부터 전체 조직 구조(트리)를 조회함.")
-    @GetMapping("/tree")
-    public ResponseEntity<List<OrganizationUnitResponse>> getTree() {
-        return ResponseEntity.ok(organizationUnitService.getOrganizationTree());
+    @GetMapping("/companies/{companyId}/tree")
+    public ResponseEntity<List<OrganizationUnitResponse>> getTree(
+            @PathVariable("companyId") Long companyId
+    ) {
+        return ResponseEntity.ok(organizationUnitService.getOrganizationTree(companyId));
     }
 
     // 조직 등록

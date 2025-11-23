@@ -5,6 +5,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "조직 단위(부서) 생성 요청 DTO")
 public record OrganizationUnitCreateRequest(
 
+        @Schema(description = "기업명", example = "기업 A")
+        Long companyId,
+
         @Schema(description = "조직명", example = "생산관리팀")
         String name,
 
