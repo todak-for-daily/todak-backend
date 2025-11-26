@@ -46,10 +46,10 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
 
-                .oauth2Login(oauth -> oauth
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .defaultSuccessUrl("/token", true) // 로그인 성공 시 /token으로 이동
-                )
+//                .oauth2Login(oauth -> oauth
+//                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+//                        .defaultSuccessUrl("/token", true) // 로그인 성공 시 /token으로 이동
+//                )
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
